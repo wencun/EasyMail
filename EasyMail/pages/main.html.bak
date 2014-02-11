@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>主页</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, maximum-scale=1">
+
+    <link rel="stylesheet"  href="../css/jquery.mobile-1.3.2.css" />
+    <link rel="stylesheet" href="../css/mail.css" />
+    <script src="../js/jquery-1.7.1.min.js"></script>
+    <!--<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>-->
+    <script type="text/javascript">
+        $(document).bind("mobileinit", function(){
+            $.mobile.loadingMessageTextVisible = true;
+            $.mobile.loadingMessage = "Please wait....";
+            $("p").removeClass("high");
+        });
+    </script>
+    <script src="../js/jquery.mobile-1.3.2.js"></script>
+    <!--<script src="http://code.jquery.com/mobile/1.3.1/jquery.mobile-1.3.1.min.js"></script>-->
+    <script type="text/javascript" src="../js/iscroll.js"></script>
+    <script type="text/javascript" src="../js/jquery.scroller-1.0.2.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/jquery.scroller-1.0.2.css" />
+    <link rel="stylesheet" href="../css/list.css" />
+    <script type="text/javascript">
+        var isClick = false;
+        var tempmoveX;  //x轴移动的距离 可能是负值 如：-100
+        var downX;
+        var downY;
+        var obj;
+        var screenWidth = $(window).width(),screenHeight = $(window).height();
+        var popupW =  screenWidth*0.9,popupH = screenHeight*0.4;
+        var width30 = 0.3,width70=0.7; //30%,70%的值
+
+        var evdown = function(eventdown){
+            downX = eventdown.pageX;
+            downY = eventdown.pageY;
+            isClick  = true;
+        }
+        $(function() {
+//            $(document).delegate('#calaDate', 'click', function () {
+//                console.log("delegate");
+//                $.mobile.changePage("main.html", {
+//                    changeHash : true,
+//                    role:"dialog",
+//                    allowSamePageTransition:true
+//                });
+//            });
+            var list_width = $("#thelist>li").width();
+            $("#thelist>li").bind("vmousedown",function (event){
+                evdown(event);
+                obj=$(this);
+            });
+
+            $("#popupDialog1").on({
+                "popupbeforeposition":function(e,ui){
+                    $("#time").css({"border-radius": "1.2em", "width": popupW,"height": popupH});
+                    $("#popupDialog1").focus();
+                }
+            });
+
+            $("body").bind("vmousemove",function(eventmove){
+                if(isClick){
+                    var moveX = eventmove.pageX;
+                    var moveY = eventmove.pageY;
+                    tempmoveX =  moveX - downX;
+                    if(tempmoveX > 10 && Math.abs(moveY - downY) < 50){  //向右滑动
+                        var li_index = $("#thelist>li").index($(this));
+                        $(".styleSelf").html(" ");
+                        if(tempmoveX > list_width * width70 ){ //移动的距离大于列表的70%
+                            $(".styleSelf").css("background-color","#ee540c");   //粉红色       #EF54C
+                            $(".styleSelf").css("background-image","url(../img/wrong.png)");   //粉红色
+                            obj.css({left:tempmoveX});
+                        }else { //if(tempmoveX > list_width * width30 ){
+                            $(".styleSelf").css("background-color","#62D962");
+                            obj.css({left:tempmoveX});
+                        }
+                    }else if(tempmoveX < 0 && Math.abs(moveY - downY) < 50){//向左滑动
+                        obj.css({right:Math.abs(tempmoveX)});
+                    }
+                }
+            });
+            $("body").bind("vmouseup",function(eventup){
+                isClick = false;
+                downX=0;
+                downY=0;
+
+                if(tempmoveX > list_width * width70 ){
+                    obj.css({left:screenWidth}); //填充屏幕宽度
+                    $("#popupDialog").popup();
+                  $('#popupDialog').popup('open');    //,{x:50,y:303}设置popup显示的位置
+                }else{
+                     obj.animate({left:0},300);
+                }
+            });
+            //日历组件加载
+            var sc = $("#popupDialog1").scroller({
+             //  width:85,
+//                height:popupH,
+                seconds: false,
+                ampm : false,
+                dateFormat: 'yy-mm-dd',
+                dateOrder: 'yyMMd',
+                theme: 'sense-ui',
+                monthNames: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'],
+                setText: '设置',
+                cancelText: '取消',
+                monthText: '月',
+                dayText: '日',
+                yearText: '年' ,
+                orignPagePosition:"#time",
+                onSelect:function(val){
+                      console.log(val);
+                }
+            });
+
+            $("#calaDate").click(function(){
+                $("#popupDialog").popup();
+                $('#popupDialog').popup('close');
+                $("#popupDialog1").popup();
+                $('#popupDialog1').popup('open');
+            });
+        });
+
+        var myScroll,  //滚动实例
+                pullUpEl, pullUpOffset,//上拖加载事件的触发DOM，该DOM的 offsetHeight（高度）
+                generatedCount = 0;
+        //列表底部向上拖动时 内容加载的处理
+        function pullUpAction () {
+            setTimeout(function () {	// <-- Simulate network congestion, remove setTimeout from production!
+                var el, li, i;
+                el = document.getElementById('thelist');
+
+                for (i=0; i<3; i++) {
+                    li = document.createElement('li');
+                    li.innerText = 'Generated row ' + (++generatedCount);
+                    el.appendChild(li, el.childNodes[0]);
+                }
+                myScroll.refresh();		// Remember to refresh when contents are loaded (ie: on ajax completion)
+                $("#thelist>li:gt(11)").bind("vmousedown",function (event){
+                    evdown(event);
+                    obj=$(this);
+                });
+            }, 1000);	// <-- Simulate network congestion, remove setTimeout from production!
+        }
+        /*
+         * PULL TO REFRESH
+         * 拖动加载
+         */
+        function loaded() {
+            pullUpEl = document.getElementById('pullUp');
+            pullUpOffset = pullUpEl.offsetHeight;
+            myScroll = new iScroll('wrapper', {
+                useTransition: true,
+                //topOffset: pullDownOffset,
+                //刷新 iScroll DOM
+                onRefresh: function () {
+                    if (pullUpEl.className.match('loading')) {
+                        pullUpEl.className = '';
+                        pullUpEl.querySelector('.pullUpLabel').innerHTML = 'Pull up to load more...';
+                    }
+                },
+                //滚动时事件处理
+                onScrollMove: function () {
+                    if (this.y < (this.maxScrollY - 5) && !pullUpEl.className.match('flip')) {
+                        pullUpEl.className = 'flip';
+                        pullUpEl.querySelector('.pullUpLabel').innerHTML = 'Release to refresh...';
+                        this.maxScrollY = this.maxScrollY;
+                    } else if (this.y > (this.maxScrollY + 5) && pullUpEl.className.match('flip')) {
+                        pullUpEl.className = '';
+                        pullUpEl.querySelector('.pullUpLabel').innerHTML = 'Pull up to load more...';
+                        this.maxScrollY = pullUpOffset;
+                    }
+                },
+                //动态加载内容处理
+                onScrollEnd: function () {
+                    if (pullUpEl.className.match('flip')) {
+                        pullUpEl.className = 'loading';
+                        pullUpEl.querySelector('.pullUpLabel').innerHTML = 'Loading...';
+                        pullUpAction();	// Execute custom function (ajax call?)
+                    }
+                }
+            });
+            setTimeout(function () { document.getElementById('wrapper').style.left = '0'; }, 800);
+        }
+        document.addEventListener('touchmove', function (e) { e.preventDefault(); }, false);
+        document.addEventListener('DOMContentLoaded', function () { setTimeout(loaded, 200); }, false);
+    </script>
+</head>
+<body>
+<div data-role="page" id="page1">
+    <div data-role="header" data-theme="c"  data-position="fixed">
+        <div class="ui-grid-b">
+            <div class="ui-block-a">
+                <a data-role="button" href="#leftPanel" class="ui-btn-left"  data-inline="true">
+                     list
+                </a>
+            </div>
+            <div class="ui-block-b">
+                <div data-role="controlgroup" data-type="horizontal" data-mini="true">
+                    <a href="#" data-role="button" data-icon="arrow-a" data-iconpos="notext"></a>
+                    <a href="#" data-role="button" data-icon="arrow-d" data-iconpos="notext"></a>
+                    <a href="#" data-role="button" data-icon="delete" data-iconpos="notext"></a>
+                </div>
+            </div>
+            <div class="ui-block-c">
+                <a data-role="button" href="send_mail.html" class="ui-btn-right"  data-inline="true">
+                    write
+                </a>
+            </div>
+        </div>
+    </div>
+    <div data-role="content" id="centerPanel">
+
+        <div id="popup_div_display" class=".popup-div-display">
+              <!-- 弹出层 -->
+        <div data-role="popup" id="popupDialog" data-history="false" data-position-to="window">
+            <div data-role="header" data-theme="d" class="ui-corner-top">
+                <h1>Dialog</h1>
+            </div>
+            <div data-role="content" data-theme="d"  class="ui-corner-bottom">
+                <h1>Delete page?</h1>
+                <p>This is a regular page, styled as a dialog.  <code>data-rel="dialog"</code> attribute.</p>
+                <a href="#" data-role="button" id="calaDate"  data-theme="b">日历</a>
+                <a href="docs-dialogs.html" data-role="button" data-rel="back" data-theme="c">Cancel</a>
+            </div>
+        </div>
+
+        <!-- 第二个框 -->
+        <div data-role="popup" id="popupDialog1" data-transition="flip" data-position-to="window" >
+                 <div id="time" >&nbsp;</div>
+        </div>
+        <!-- 弹出层结束 -->
+        </div>
+        <input type="search"  id="search" data-mini="true"/>
+    <div id="wrapper" style="margin-top: 0px">
+        <div id="scroller">
+            <!-- 内容列表 -->
+            <ul id="thelist">
+                <li>
+                    <div class="styleSelf" id="hideChangeCss"></div>
+                    <div class="content-border">
+                    <div class="list-left"><img src="../img/list_img.jpg" /></div>
+                    <div class="list-cont">
+                        <div class="name">Gmail 小组<div class="name date"></div></div>
+                        <div class="title">该示例是作为演示用的</div>
+                        <div class="content">您可以生产的东西是MailBox,可是我们为此生产了EasyMail</div>
+                    </div>
+                    <div class="clear"></div>
+                    </div>
+                </li>
+                <li>Pretty row 2</li>
+                <li>Pretty row 3</li>
+                <li>Pretty row 4</li>
+                <li>Pretty row 5</li>
+                <li>Pretty row 6</li>
+                <li>Pretty row 7</li>
+                <li>Pretty row 8</li>
+                <li>Pretty row 9</li>
+                <li>Pretty row 10</li>
+                <li>Pretty row 11</li>
+                <li>Pretty row 12</li>
+            </ul>
+            <!-- 内容列表底部 向上拖动 loading 展现 -->
+            <div id="pullUp">
+                <span class="pullUpIcon"></span><span class="pullUpLabel">Pull up to refresh...</span>
+            </div>
+        </div>
+    </div>
+</div>
+    <!-- leftPanel  -->
+    <div data-role="panel" id="leftPanel" data-theme="a" style="position: absolute;width: 100%"
+         data-position="left" data-display="panel">
+        <ul data-role="listview" >
+            <li data-theme="a">
+                <!--<img src="../img/18-envelope.png" />-->
+                <a href="" data-rel="open"><h3 style="left: 2px">邮件设置</h3></a>
+            </li>
+            <li data-theme="a">
+                <h3 style="left:2px;" class="tips2">我的文件<span>55</span></h3>
+            </li>
+            <li data-theme="a">
+                <h3 style="left:2px;" class="tips3">Loter<span>11</span></h3>
+            </li>
+            <li data-theme="a">
+                <h3 style="left:2px;" class="tips4">列表<span>10</span></h3>
+                <!--<div data-role="collapsible" data-theme="a">-->
+                <!--<h3 style="left:2px;" class="tips1">列表<span>10</span></h3></a>-->
+                <!--<p>1</p>-->
+                <!--</div>-->
+            </li>
+            <!--4-->
+            <li data-theme="a">
+                <h3 style="left:2px;" class="tips5">存档</h3>
+            </li>
+            <!--5-->
+            <li data-theme="a">
+                <!--<img src="../img/18-envelope.png" />-->
+                <h3 style="left:2px;" class="tips6">垃圾箱</h3>
+            </li>
+            <!--6-->
+            <li data-theme="a">
+                <!--<img src="../img/18-envelope.png" />-->
+                <h3 style="left:2px;" class="tips7">Sent</h3>
+            </li>
+            <!--7-->
+            <li data-theme="a">
+                <!--<img src="../img/18-envelope.png" />-->
+                <a href="#demo-links" data-rel="close"><h3 style="left: 2px">关闭面板</h3></a>
+            </li>
+        </ul>
+        <!--<a href="#demo-links" data-rel="close" data-role="button" data-theme="a" data-icon="delete" data-inline="true"-->
+        <!--style="left:-20px;margin-top:15px;color: #FFFFFF;width: 10%;">-->
+        <!--关闭面板-->
+        <!--</a>-->
+    </div><!-- /leftPanel -->
+</div>
+</body>
+</html>
