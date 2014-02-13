@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>jQuery Mobile </title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, maximum-scale=1">
+
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.0/jquery.mobile-1.0.min.css" />
+    <script src="http://code.jquery.com/jquery-1.6.4.min.js"></script>
+    <script src="http://code.jquery.com/mobile/1.0/jquery.mobile-1.0.min.js"></script>
+    <script type="text/javascript" src="../js/jquery.scroller-1.0.2.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/jquery.scroller-1.0.2.css" />
+    <script>
+        $(document).ready(function(){
+        //日历组件加载
+        $("#popupDialog").scroller({
+            seconds: false,
+            ampm : false,
+            dateFormat: 'yy/mm/dd',
+            dateOrder: 'yyMMd',
+            theme: 'sense-ui',
+            monthNames: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'],
+            setText: '设置',
+            cancelText: '取消',
+            monthText: '月',
+            dayText: '日',
+            yearText: '年'
+        });
+            $("#popupDialog").click(function(){
+                console.log(234);
+                $("#popupDialog").focus();
+               // $("#popupDialog").click();
+            });
+        });
+
+    </script>
+</head>
+<body>
+<div data-role="page">
+    <!--<input id="popupDialog" />-->
+    <div  name="date3" id="popupDialog" data-role="button"
+          class="genField textEntry date" data-inline="true">dd ddddd</div>
+
+
+</div><!-- /page -->
+</body>
+</html>
